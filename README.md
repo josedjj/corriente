@@ -1,34 +1,36 @@
-# Corriente — cliente BitTorrent para Windows
+# Corriente — BitTorrent client for Windows
 
-Cliente BitTorrent de escritorio para Windows 10/11, gratuito y de código abierto, con motor **libtorrent 2.x**
-e interfaz **PySide6**.
+[Español](README.es.md) · **English**
 
-- **Sin publicidad**, sin telemetría y sin cuentas. No envía datos a ningún servidor propio.
-- Interfaz en español, con tema oscuro y claro.
-- Licencia MIT: puedes usarlo, modificarlo y compartirlo libremente.
+A free, open-source desktop BitTorrent client for Windows 10/11, built on **libtorrent 2.x** with a **PySide6** interface.
 
-## Descargar
+- **No ads**, no telemetry, no accounts. It never sends data to any server of its own.
+- Spanish-language interface with dark and light themes.
+- MIT licensed: use it, modify it and share it freely.
 
-Ve a [**Releases**](../../releases/latest), descarga `Corriente-windows-x64.zip`, descomprímelo donde quieras
-y abre `Corriente.exe`. No necesita instalación ni Python.
+## Download
 
-> Como el ejecutable no está firmado digitalmente, Windows SmartScreen puede mostrar «Windows protegió su PC».
-> Pulsa **Más información → Ejecutar de todas formas**. Si prefieres, puedes compilarlo tú mismo desde el código (ver abajo).
+Go to [**Releases**](../../releases/latest), download `Corriente-windows-x64.zip`, unzip it anywhere and run
+`Corriente.exe`. No installation and no Python required.
 
-## Estructura
+> The executable is not digitally signed, so Windows SmartScreen may show "Windows protected your PC".
+> Click **More info → Run anyway**. You can also build it yourself from source (see below).
 
-| Archivo | Qué hace |
+## Project layout
+
+| File | Purpose |
 |---|---|
-| `main.py` | Punto de entrada, instancia única (reenvía `.torrent`/magnet a la ventana abierta), registro de errores |
-| `engine.py` | Sesión de libtorrent: añadir/pausar/eliminar, alertas, datos de reanudación, estado del puerto, diagnóstico «¿Por qué va lento?» |
-| `ui.py` | Ventana principal, diálogos (añadir, magnet, ajustes, diagnóstico), bandeja, gráfico de velocidad, temas |
-| `settings.py` | Configuración persistente en `%APPDATA%\Corriente\settings.json` |
-| `winassoc.py` | Asociación de `.torrent` y `magnet:` en el registro (HKCU, sin permisos de administrador) |
-| `build.ps1` | Empaquetado con PyInstaller |
+| `main.py` | Entry point, single instance (forwards `.torrent`/magnet links to the open window), error logging |
+| `engine.py` | libtorrent session: add/pause/remove, alerts, resume data, port status, "Why is it slow?" diagnostics |
+| `ui.py` | Main window, dialogs (add, magnet, settings, diagnostics), system tray, speed graph, themes |
+| `settings.py` | Persistent settings in `%APPDATA%\Corriente\settings.json` |
+| `netif.py` | Network adapter list (to pick an interface, or route inside/outside a VPN) |
+| `winassoc.py` | `.torrent` and `magnet:` association in the registry (HKCU, no admin rights needed) |
+| `build.ps1` | PyInstaller packaging |
 
-## Ejecutar desde el código
+## Run from source
 
-Requiere Python 3.11 o superior (probado con 3.13), 64 bits.
+Requires 64-bit Python 3.11 or newer (tested with 3.13).
 
 ```powershell
 python -m venv .venv
@@ -36,88 +38,91 @@ python -m venv .venv
 .\.venv\Scripts\python main.py
 ```
 
-Si `import libtorrent` falla con un error de DLL, instala el **Microsoft Visual C++ Redistributable x64** más reciente.
+If `import libtorrent` fails with a DLL error, install the latest **Microsoft Visual C++ Redistributable (x64)**.
 
-## Crear el .exe
+## Build the .exe
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\build.ps1           # carpeta dist\Corriente\ (recomendado: arranca más rápido)
-powershell -ExecutionPolicy Bypass -File .\build.ps1 -OneFile  # un único dist\Corriente.exe
+powershell -ExecutionPolicy Bypass -File .\build.ps1           # dist\Corriente\ folder (recommended: starts faster)
+powershell -ExecutionPolicy Bypass -File .\build.ps1 -OneFile  # single dist\Corriente.exe
 ```
 
-El script crea el entorno virtual, instala `requirements-build.txt`, genera el icono y ejecuta:
+The script creates the virtual environment, installs `requirements-build.txt`, generates the icon and runs:
 
 ```
 pyinstaller main.py --name Corriente --windowed --onedir --icon assets\corriente.ico --collect-all libtorrent
 ```
 
-Para distribuirlo, comprime la carpeta `dist\Corriente` completa. Para que el doble clic en `.torrent` apunte
-al .exe, activa la asociación **desde el .exe** (Ajustes → General), no desde la versión en Python.
+To distribute it, zip the whole `dist\Corriente` folder. For double-clicking `.torrent` files to open the .exe,
+enable the association **from the .exe** (Ajustes → General), not from the Python version.
 
-## Funciones
+## Features
 
-- Abrir `.torrent` con el botón, arrastrando y soltando o con doble clic desde el Explorador.
-- Pegar enlaces magnet (Ctrl+M; si hay uno en el portapapeles, se rellena solo).
-- Al añadir: elegir carpeta de destino, archivos y prioridad por archivo, con aviso de espacio libre.
-  En los magnet, el diálogo aparece al recibir los metadatos; hasta entonces no se descarga ninguna pieza.
-- Lista con nombre, tamaño, progreso, bajada/subida, semillas y pares (conectados y totales), ETA, estado y ratio.
-- Pausar, reanudar, forzar inicio, eliminar (con opción de borrar archivos), forzar recomprobación,
-  prioridad en la cola (subir, bajar, arriba, abajo) y prioridad por archivo.
-- Panel de detalles: General, Archivos, Pares, Trackers, Velocidad (gráfico de 5 min) y Registro.
-- Reanudación tras cerrar (`%APPDATA%\Corriente\resume\*.fastresume`, guardado periódico y al salir).
-- Bandeja del sistema: cerrar o minimizar la deja en segundo plano y avisa cuando termina una descarga.
-- Tema oscuro y claro (menú Ver o Ajustes).
+- Open `.torrent` files with the button, by drag and drop, or by double-clicking them in File Explorer.
+- Paste magnet links (Ctrl+M; a magnet link already on the clipboard is filled in automatically).
+- When adding: choose the destination folder, the files and a per-file priority, with a free-space warning.
+  For magnet links the dialog appears once the metadata arrives; no pieces are downloaded until then.
+- Torrent list with name, size, progress, download/upload speed, seeds and peers (connected and total),
+  ETA, status and ratio.
+- Pause, resume, force start, remove (optionally deleting the files), force recheck,
+  queue priority (up, down, top, bottom) and per-file priority.
+- Details panel: General, Files, Peers, Trackers, Speed (5-minute graph) and Log.
+- Resumes after closing (`%APPDATA%\Corriente\resume\*.fastresume`, saved periodically and on exit).
+- System tray: closing or minimizing keeps it running in the background, with a notification when a download finishes.
+- Dark and light themes (View menu or Settings).
 
-## Ajustes por defecto
+## Default settings
 
-| Ajuste | Valor |
+| Setting | Value |
 |---|---|
-| Puerto | aleatorio entre 49152 y 65535 (se elige una vez y se mantiene), UPnP y NAT-PMP activados |
-| Búsqueda de pares | DHT, PeX y LSD activados |
-| Cifrado | habilitado (preferido, sin forzar) |
-| Conexiones | 800 en total, 150 por torrent, 4 ranuras de subida por torrent |
-| Velocidad | subida al 80 % de la que indiques (se pregunta en el primer arranque), bajada ilimitada |
-| Cola | 5 torrents activos, 3 descargas activas (los torrents sin actividad no cuentan) |
-| Disco | 8 hilos de E/S, 2 de verificación, búfer de envío de 4 MiB, caché del sistema activa, archivos dispersos (la preasignación completa es opcional) |
-| Trackers públicos | lista editable, desactivada por defecto para torrents nuevos; también se puede añadir a uno ya agregado con clic derecho → «Añadir trackers públicos». Nunca se añade a torrents privados |
+| Port | random between 49152 and 65535 (chosen once and kept), UPnP and NAT-PMP enabled |
+| Peer discovery | DHT, PeX and LSD enabled |
+| Encryption | enabled (preferred, not forced) |
+| Connections | 800 total, 150 per torrent, 4 upload slots per torrent |
+| Speed | upload capped at 80 % of the speed you enter (asked on first run), unlimited download |
+| Queue | 5 active torrents, 3 active downloads (inactive torrents don't count) |
+| Disk | 8 I/O threads, 2 hashing threads, 4 MiB send buffer, OS cache enabled, sparse files (full preallocation optional) |
+| Public trackers | editable list, off by default for new torrents; it can also be added to an existing torrent via right-click → "Añadir trackers públicos". Never added to private torrents |
 
-## VPN y split tunneling
+## VPN and split tunneling
 
-En Ajustes → Conexión → **Interfaz de red** se puede atar Corriente a un adaptador concreto. Para usarlo
-fuera de la VPN, excluye `Corriente.exe` en el *split tunneling* de la VPN, elige tu adaptador físico
-(Ethernet o Wi-Fi) y reinicia Corriente. Si eliges la VPN, Corriente solo funcionará con la VPN conectada.
-Si el adaptador elegido se desconecta, Corriente se queda sin conexión en lugar de usar otro.
+In Ajustes → Conexión → **Interfaz de red** (Settings → Connection → Network interface) you can bind Corriente
+to a specific adapter. To use it outside the VPN, exclude `Corriente.exe` in the VPN's split tunneling, pick your
+physical adapter (Ethernet or Wi-Fi) and restart Corriente. If you pick the VPN adapter, Corriente only works
+while the VPN is connected. If the chosen adapter disconnects, Corriente stays offline instead of switching to another one.
 
-## Diagnóstico
+Some VPNs (for example NordVPN) block traffic from apps excluded via split tunneling on both the VPN and the
+physical adapter. If nothing connects, remove Corriente from the split tunneling list and bind it to the VPN
+adapter, or disconnect the VPN.
 
-- **Barra de estado**: estado del puerto (abierto / redirigido / cerrado / comprobando), nodos DHT y velocidad total.
-  El puerto se da por abierto cuando llega alguna conexión entrante. Si en 5 minutos con torrents activos
-  no entra ninguna, se marca como cerrado.
-- **¿Por qué va lento?** (F1): analiza el torrent seleccionado y explica en lenguaje sencillo las causas probables,
-  ordenadas por importancia: en cola o pausado, pocas semillas o ninguna copia completa, puerto cerrado, VPN
-  detectada sin conexiones entrantes, DHT sin nodos, trackers caídos, límite de subida demasiado bajo, límite
-  de bajada alcanzado, disco saturado (avisos de rendimiento de libtorrent y pares esperando al disco),
-  falta de espacio y errores de hash.
+## Diagnostics
 
-## Errores
+- **Status bar**: port status (open / forwarded / closed / checking), DHT nodes and total speed.
+  The port is reported open once an incoming connection arrives. If none arrives within 5 minutes with active
+  torrents, it is marked as closed.
+- **¿Por qué va lento?** ("Why is it slow?", F1): analyzes the selected torrent and explains the likely causes in
+  plain language, ordered by importance: queued or paused, few seeds or no complete copy available, closed port,
+  VPN detected with no incoming connections, DHT with no nodes, trackers down, upload limit too low, download limit
+  reached, saturated disk (libtorrent performance warnings and peers waiting on disk), low disk space and hash errors.
 
-Los errores de libtorrent se traducen a mensajes claros: disco lleno, permiso denegado, archivo en uso por
-otro programa, ruta demasiado larga, unidad desconectada, torrent o magnet inválido, torrent duplicado y puerto
-ocupado. Los errores no previstos se guardan en `%APPDATA%\Corriente\corriente.log`.
+## Errors
 
-## Nota sobre Windows 10/11
+libtorrent errors are translated into clear messages: disk full, permission denied, file in use by another
+program, path too long, drive disconnected, invalid torrent or magnet link, duplicate torrent and port in use.
+Unexpected errors are logged to `%APPDATA%\Corriente\corriente.log`.
 
-Si ya elegiste otro programa con «Abrir siempre con», Windows mantiene esa elección por encima de la asociación
-de Corriente. En ese caso elige Corriente una vez en *Configuración → Aplicaciones → Aplicaciones predeterminadas*;
-en Ajustes → General hay un botón que abre esa pantalla.
+## Note on Windows 10/11
 
-## Uso responsable
+If you already chose another program with "Always open with", Windows keeps that choice over Corriente's
+association. In that case, pick Corriente once in *Settings → Apps → Default apps*; Ajustes → General has a
+button that opens that screen.
 
-Corriente es una herramienta de propósito general, igual que cualquier otro cliente BitTorrent: sirve para
-distribuciones Linux, software libre, obras de dominio público o con licencia Creative Commons, archivos
-propios y cualquier contenido que tengas derecho a compartir. Cada usuario es responsable de lo que descarga y
-comparte, y de cumplir las leyes de su país.
+## Responsible use
 
-## Contribuir
+Corriente is a general-purpose tool, like any other BitTorrent client: use it for Linux distributions, free
+software, public-domain or Creative Commons works, your own files and any content you have the right to share.
+Each user is responsible for what they download and share, and for complying with the laws of their country.
 
-Los reportes de errores y las mejoras son bienvenidos: abre un *issue* o un *pull request*.
+## Contributing
+
+Bug reports and improvements are welcome: open an *issue* or a *pull request*.
