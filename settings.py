@@ -15,6 +15,7 @@ from typing import Any
 
 APP_NAME = "Corriente"
 APP_ID = "Corriente.BitTorrent"
+APP_VERSION = "1.0.1"
 
 PORT_MIN = 49152
 PORT_MAX = 65535

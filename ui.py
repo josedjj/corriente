@@ -26,7 +26,7 @@ from PySide6.QtWidgets import (QAbstractItemView, QApplication, QCheckBox, QComb
 import netif
 import winassoc
 from engine import TorrentEngine, TorrentError, explain_error
-from settings import APP_NAME, PORT_MAX, PORT_MIN, Settings, random_port
+from settings import APP_NAME, APP_VERSION, PORT_MAX, PORT_MIN, Settings, random_port
 
 # ---------------------------------------------------------------------------
 # Formato
@@ -1282,7 +1282,7 @@ class MainWindow(QMainWindow):
 
     def about(self) -> None:
         QMessageBox.about(self, f"Acerca de {APP_NAME}",
-                          f"<b>{APP_NAME} 1.0</b><br>Cliente BitTorrent de escritorio.<br><br>"
+                          f"<b>{APP_NAME} {APP_VERSION}</b><br>Cliente BitTorrent de escritorio.<br><br>"
                           f"libtorrent {lt.__version__} · PySide6<br>Datos: {self.settings.path.parent}")
 
     # ------------------------------------------------------------- menús contextuales

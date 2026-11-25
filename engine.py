@@ -18,7 +18,7 @@ from typing import Any
 
 import libtorrent as lt
 
-from settings import APP_NAME, Settings, resume_dir
+from settings import APP_NAME, APP_VERSION, Settings, resume_dir
 
 HISTORY_LEN = 600  # segundos de historial de velocidad (10 min)
 
@@ -194,8 +194,8 @@ class TorrentEngine:
                 | lt.alert_category.tracker | lt.alert_category.port_mapping
                 | lt.alert_category.performance_warning | lt.alert_category.stats)
         return {
-            "user_agent": f"{APP_NAME}/1.0 libtorrent/{lt.__version__}",
-            "peer_fingerprint": "-CR1000-",
+            "user_agent": f"{APP_NAME}/{APP_VERSION} libtorrent/{lt.__version__}",
+            "peer_fingerprint": "-CR" + "".join(APP_VERSION.split(".")[:3]).ljust(4, "0")[:4] + "-",
             "alert_mask": int(mask),
             "alert_queue_size": 10000,
             # Red
