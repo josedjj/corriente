@@ -42,10 +42,31 @@ def fmt_size(n: float) -> str:
     return f"{n:.2f} TiB"
 
 
+SPEED_UNIT = "bytes"   # "bytes" (MiB/s) o "bits" (Mbps, como anuncian los proveedores de internet)
+
+
+def set_speed_unit(unit: str) -> None:
+    global SPEED_UNIT
+    SPEED_UNIT = "bits" if unit == "bits" else "bytes"
+
+
+def fmt_rate(n: float) -> str:
+    """Velocidad siempre con texto (incluye 0)."""
+    n = max(0.0, float(n or 0))
+    if SPEED_UNIT == "bits":
+        bits = n * 8
+        for unit in ("bps", "Kbps", "Mbps", "Gbps"):
+            if bits < 1000 or unit == "Gbps":
+                return f"{bits:.0f} {unit}" if unit == "bps" else f"{bits:.1f} {unit}"
+            bits /= 1000
+    return fmt_size(n) + "/s"
+
+
 def fmt_speed(n: float) -> str:
+    """Velocidad para tablas: vacío si es 0."""
     if not n or n < 1:
         return ""
-    return fmt_size(n) + "/s"
+    return fmt_rate(n)
 
 
 def fmt_eta(seconds: float) -> str:
@@ -322,7 +343,7 @@ class SpeedGraph(QWidget):
             p.save()
             p.setPen(pal.color(QPalette.ColorRole.Text))
             p.drawText(QRectF(0, y - 8, left - 6, 16), int(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter),
-                       fmt_size(peak * (4 - i) / 4) + "/s")
+                       fmt_rate(peak * (4 - i) / 4))
             p.restore()
         p.setPen(pal.color(QPalette.ColorRole.Text))
         p.drawText(QRectF(left, top + h + 4, w, 16), int(Qt.AlignmentFlag.AlignLeft), "hace 5 min")
@@ -594,6 +615,10 @@ class SettingsDialog(QDialog):
         self.theme = QComboBox(); self.theme.addItems(["Oscuro", "Claro"])
         self.theme.setCurrentIndex(0 if settings["theme"] == "oscuro" else 1)
         f.addRow("Tema:", self.theme)
+        self.speed_unit = QComboBox()
+        self.speed_unit.addItems(["Bytes (MiB/s)", "Bits (Mbps, como tu proveedor de internet)"])
+        self.speed_unit.setCurrentIndex(1 if settings["speed_unit"] == "bits" else 0)
+        f.addRow("Unidad de velocidad:", self.speed_unit)
         self.download_dir = FolderPicker(settings["download_dir"])
         f.addRow("Carpeta por defecto:", self.download_dir)
         self.ask_on_add = QCheckBox("Preguntar carpeta y archivos al añadir un torrent")
@@ -755,6 +780,7 @@ class SettingsDialog(QDialog):
     def values(self) -> dict:
         return {
             "theme": "oscuro" if self.theme.currentIndex() == 0 else "claro",
+            "speed_unit": "bits" if self.speed_unit.currentIndex() == 1 else "bytes",
             "download_dir": self.download_dir.path(),
             "ask_on_add": self.ask_on_add.isChecked(),
             "start_paused": self.start_paused.isChecked(),
@@ -821,6 +847,7 @@ class MainWindow(QMainWindow):
         self._selection_queue: list[str] = []
         self._selection_open = False
         self._detail_files_key = None
+        set_speed_unit(settings["speed_unit"])
 
         self.setWindowTitle(APP_NAME)
         self.app_icon = make_app_icon()
@@ -881,6 +908,9 @@ class MainWindow(QMainWindow):
         self.a_settings = self._act("Ajustes…", self.open_settings, "SP_FileDialogDetailedView", "Ctrl+,")
         self.a_quit = self._act("Salir", self.quit_app, None, "Ctrl+Q")
         self.a_theme = self._act("Cambiar tema claro/oscuro", self.toggle_theme)
+        self.a_bits = self._act("Velocidad en Mbps (bits)", self.toggle_speed_unit)
+        self.a_bits.setCheckable(True)
+        self.a_bits.setChecked(self.settings["speed_unit"] == "bits")
         self.a_pause_all = self._act("Pausar todo", lambda: [self.engine.pause(k) for k in list(self.engine.handles)])
         self.a_resume_all = self._act("Reanudar todo", lambda: [self.engine.resume(k) for k in list(self.engine.handles)])
 
@@ -896,6 +926,7 @@ class MainWindow(QMainWindow):
             m.addSeparator() if a is None else m.addAction(a)
         m = mb.addMenu("&Ver")
         m.addAction(self.a_theme)
+        m.addAction(self.a_bits)
         m = mb.addMenu("A&yuda")
         m.addAction(self.a_slow)
         m.addAction(self._act("Acerca de", self.about))
@@ -1273,7 +1304,15 @@ class MainWindow(QMainWindow):
         self.engine.apply_settings()
         if values["theme"] != old_theme:
             apply_theme(QApplication.instance(), values["theme"])
+        set_speed_unit(self.settings["speed_unit"])
+        self.a_bits.setChecked(self.settings["speed_unit"] == "bits")
         self.statusBar().showMessage("Ajustes guardados y aplicados", 4000)
+
+    def toggle_speed_unit(self) -> None:
+        self.settings["speed_unit"] = "bits" if self.a_bits.isChecked() else "bytes"
+        set_speed_unit(self.settings["speed_unit"])
+        self.settings.save()
+        self._on_ui_tick()
 
     def toggle_theme(self) -> None:
         self.settings["theme"] = "claro" if self.settings["theme"] == "oscuro" else "oscuro"
@@ -1376,9 +1415,9 @@ class MainWindow(QMainWindow):
             self.lbl_dht.setText(self.lbl_dht.text() + f"  ·  Red: {self.settings['network_interface']}")
         down, up = self.engine.global_history[-1] if self.engine.global_history else (0, 0)
         limit = self.settings.effective_upload_limit_bytes()
-        up_lim = f" [{fmt_size(limit)}/s]" if limit else ""
-        self.lbl_speed.setText(f"↓ {fmt_speed(down) or '0 B/s'}   ↑ {fmt_speed(up) or '0 B/s'}{up_lim}")
-        self.tray.setToolTip(f"{APP_NAME}\n↓ {fmt_speed(down) or '0 B/s'}  ↑ {fmt_speed(up) or '0 B/s'}")
+        up_lim = f" [{fmt_rate(limit)}]" if limit else ""
+        self.lbl_speed.setText(f"↓ {fmt_rate(down)}   ↑ {fmt_rate(up)}{up_lim}")
+        self.tray.setToolTip(f"{APP_NAME}\n↓ {fmt_rate(down)}  ↑ {fmt_rate(up)}")
 
     def _refresh_details(self, force: bool = False) -> None:
         if not self.details.isVisible() and not force:

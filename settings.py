@@ -15,7 +15,7 @@ from typing import Any
 
 APP_NAME = "Corriente"
 APP_ID = "Corriente.BitTorrent"
-APP_VERSION = "1.0.1"
+APP_VERSION = "1.0.2"
 
 PORT_MIN = 49152
 PORT_MAX = 65535
@@ -60,6 +60,7 @@ def random_port() -> int:
 DEFAULTS: dict[str, Any] = {
     # General
     "theme": "oscuro",                 # "oscuro" | "claro"
+    "speed_unit": "bytes",             # "bytes" (MiB/s) | "bits" (Mbps)
     "download_dir": "",                # se rellena en la primera ejecución
     "ask_on_add": True,                # mostrar diálogo al añadir torrents
     "start_paused": False,
