@@ -1,0 +1,4 @@
+# Motor BitTorrent (incluye ruedas para Windows x64 y Python 3.9-3.13)
+libtorrent>=2.0.9,<3
+# Solo los módulos esenciales de Qt (Widgets, Gui, Network): evita ~500 MB de complementos
+PySide6-Essentials>=6.6
