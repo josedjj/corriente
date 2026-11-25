@@ -125,6 +125,22 @@ distribuciones Linux, software libre, obras de dominio público o con licencia C
 propios y cualquier contenido que tengas derecho a compartir. Cada usuario es responsable de lo que descarga y
 comparte, y de cumplir las leyes de su país.
 
+## Política de firma de código
+
+Firma de código gratuita proporcionada por [SignPath.io](https://about.signpath.io), certificado de
+[SignPath Foundation](https://signpath.org).
+
+- Los binarios publicados se compilan desde este repositorio con GitHub Actions ([flujo de compilación](.github/workflows/build.yml));
+  nunca se firma nada compilado en un equipo personal.
+- Autores y revisores: [miembros de este repositorio](../../graphs/contributors)
+- Aprobadores: [josedjj](https://github.com/josedjj)
+
+### Política de privacidad
+
+Este programa no transfiere información a otros sistemas de la red salvo que el usuario lo solicite expresamente.
+Las conexiones con pares, trackers y la DHT de BitTorrent solo ocurren para los torrents que el usuario añade.
+Corriente no tiene telemetría, analíticas, publicidad ni comprobación de actualizaciones.
+
 ## Contribuir
 
 Los reportes de errores y las mejoras son bienvenidos: abre un *issue* o un *pull request*.

@@ -123,6 +123,22 @@ Corriente is a general-purpose tool, like any other BitTorrent client: use it fo
 software, public-domain or Creative Commons works, your own files and any content you have the right to share.
 Each user is responsible for what they download and share, and for complying with the laws of their country.
 
+## Code signing policy
+
+Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by
+[SignPath Foundation](https://signpath.org).
+
+- Release binaries are built from this repository by GitHub Actions ([build workflow](.github/workflows/build.yml));
+  nothing built on a personal machine is signed.
+- Committers and reviewers: [members of this repository](../../graphs/contributors)
+- Approvers: [josedjj](https://github.com/josedjj)
+
+### Privacy policy
+
+This program will not transfer any information to other networked systems unless specifically requested by the
+user or the person operating it. Connecting to BitTorrent peers, trackers and the DHT only happens for the
+torrents the user adds. Corriente has no telemetry, no analytics, no ads and no update checks.
+
 ## Contributing
 
 Bug reports and improvements are welcome: open an *issue* or a *pull request*.
